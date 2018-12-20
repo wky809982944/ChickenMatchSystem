@@ -1,0 +1,1066 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#define ElemType Player
+#define Status int
+#define ERROR 0
+#define OK 1
+
+/*玩家结构体*/
+typedef struct Player {
+    long long ID;
+    char password[20];
+    int Rank;
+    double KD;
+    int Chicken;
+    int Competence;
+} Player;
+/*
+链表节点
+*/
+Player player[100];
+typedef struct LinkNode {
+    //数据域
+    ElemType data;
+    //指针域
+    struct LinkNode *next;
+} LinkNode;
+/*定义LinkList*/
+typedef struct LinkNode *LinkList;
+
+LinkList LoginPlayer;
+void AdministratorMenu(LinkList L);
+/*
+单链表的读取
+*/
+Status GetElem(LinkList *L, long long i, ElemType *e) {
+    int j;
+    /*声明一指针p*/
+    LinkList p;
+    /*让p指向链表L的第一个节点*/
+    p = *L;
+    /*j为计数器*/
+    j = 0;
+    /*p不为空且计数器j还没有等于i时，循环继续*/
+    while (p->next && j < i) {
+        /*让p指向下一个节点*/
+        p = p->next;
+        ++j;
+    }
+    /*第i个节点不存在*/
+    if (!p || j > i)
+        return ERROR;
+    /*取第i个节点的数据*/
+    *e = p->data;
+    return OK;
+}
+
+/*
+根据K/D执行单链表的查找
+*/
+void LinkSearchbyKD(LinkList *L, double key) {
+    int j;
+    /*声明一指针p*/
+    LinkList p;
+    /*让p指向链表L的第一个节点*/
+    p = *L;
+    /*p不为空且计数器j还没有等于i时，循环继续*/
+    while (p->next) {
+        if (p->data.KD == key){
+            printf("\t\t玩家ID:%lld\n", p->data.ID);
+            printf("\t\t玩家Rank:%d\n",  p->data.Rank);
+            printf("\t\t玩家K/D:%.3lf\n",  p->data.KD);
+            printf("\t\t玩家Chicken:%.3lf\n",  p->data.Chicken);
+        }
+        /*让p指向下一个节点*/
+        p = p->next;
+
+    }
+}
+
+/*
+根据Rank执行单链表的查找
+*/
+void LinkSearchbyRank(LinkList *L,int key) {
+    int j;
+    /*声明一指针p*/
+    LinkList p;
+    /*让p指向链表L的第一个节点*/
+    p = *L;
+    /*p不为空且计数器j还没有等于i时，循环继续*/
+    while (p->next) {
+        if (p->data.Rank == key){
+            printf("\t\t玩家ID:%lld\n", p->data.ID);
+            printf("\t\t玩家Rank:%d\n",  p->data.Rank);
+            printf("\t\t玩家K/D:%.3lf\n",  p->data.KD);
+            printf("\t\t玩家Chicken:%.3lf\n",  p->data.Chicken);
+        }
+        /*让p指向下一个节点*/
+        p = p->next;
+
+    }
+}
+/*
+根据ID进行单链表的查找
+*/
+Status LinkSearch(LinkList *L, ElemType *e, long long key) {
+    int j;
+    /*声明一指针p*/
+    LinkList p;
+    /*让p指向链表L的第一个节点*/
+    p = *L;
+    /*p不为空且计数器j还没有等于i时，循环继续*/
+    while (p->next && p->data.ID != key) {
+        /*让p指向下一个节点*/
+        p = p->next;
+        printf("%lld\n", p->data.ID);
+    }
+    /*第i个节点不存在*/
+    if (!p)
+        return 0;
+    if (p->data.ID == key)
+        *e = p->data;
+    return 1;
+}
+/*
+单链表的读取返回节点指针
+*/
+LinkList GetElemNode(LinkList *L, long long i) {
+    int j;
+    /*声明一指针p*/
+    LinkList p;
+    /*让p指向链表L的第一个节点*/
+    p = *L;
+    /*j为计数器*/
+    j = 0;
+    /*p不为空且计数器j还没有等于i时，循环继续*/
+    while (p->next && j < i) {
+        /*让p指向下一个节点*/
+        p = p->next;
+        ++j;
+    }
+    /*第i个节点不存在*/
+    if (!p || j > i)
+        return ERROR;
+    return p;
+}
+/*
+单链表在末尾插入
+*/
+Status ListInsert(LinkList *L, ElemType e) {
+    LinkList p, s;
+    p = *L;
+    while (p->next) {
+        p = p->next;
+    }
+
+    /*生成新节点*/
+    s = (LinkList) malloc(sizeof(LinkNode));
+    s->data = e;
+    /*将p的后继节点赋值给s的后继*/
+    s->next = p->next;
+    /*将s赋值给p的后继*/
+    p->next = s;
+    return OK;
+}
+/*
+单链表按位置插入
+*/
+Status ListInsertNumber(LinkList *L, int i, ElemType e) {
+    int j;
+    LinkList p, s;
+    p = *L;
+    j = 1;
+    /*寻找第i-1个节点*/
+    while (p && j < i) {
+        p = p->next;
+        ++j;
+    }
+    /*第i个节点不存在*/
+    if (!p || j > i)
+        return ERROR;
+    /*生成新节点*/
+    s = (LinkList) malloc(sizeof(LinkNode));
+    s->data = e;
+    /*将p的后继节点赋值给s的后继*/
+    s->next = p->next;
+    /*将s赋值给p的后继*/
+    p->next = s;
+    return OK;
+}
+/*
+单链表的删除
+*/
+Status ListDelete(LinkList *L, int i, ElemType *e) {
+    int j;
+    LinkList p, q;
+    p = *L;
+    j = 1;
+    /*遍历寻找第i-1个节点*/
+    while (p->next && j < i) {
+        p = p->next;
+        ++j;
+    }
+    /*第i个节点不存在*/
+    if (!(p->next) || j > i)
+        return ERROR;
+    q = p->next;
+    /*将q的后继赋给p的后继*/
+    p->next = q->next;
+    /*将q节点中的数据给p的后继*/
+    *e = q->data;
+    /*让系统回收此节点，释放内存*/
+    free(q);
+    return OK;
+}
+
+/*
+单链表的删除按ID
+*/
+Status ListDeletebyID(LinkList *L,long long id){
+    LinkList p, q;
+    p = *L;
+    /*遍历寻找第i-1个节点*/
+    while (p->next && id!=p->next->data.ID) {
+        p = p->next;
+    }
+    /*第i个节点不存在*/
+    if (!(p->next))
+        return ERROR;
+    /*将q的后继赋给p的后继*/
+    q = p->next;
+    /*将q节点中的数据给p的后继*/
+    p->next = q->next;
+    /*让系统回收此节点，释放内存*/
+    free(q);
+}
+
+/*
+单链表的创建
+*/
+void CreativeListHead(LinkList *L) {
+    *L = (LinkList) malloc(sizeof(LinkNode));
+    (*L)->next = NULL;
+    LinkList p;
+    player[1].ID = 1;
+    player[1].Rank = 300;
+    player[1].KD = 3.1;
+    player[1].Chicken =25;
+    player[2].ID = 2;
+    player[2].Rank = 520;
+    player[2].KD = 4;
+    player[2].Chicken = 11;
+    player[3].ID = 3;
+    player[3].Rank = 1200;
+    player[3].KD = 0.2;
+    player[3].Chicken = 2;
+    char pass[20] = "123456";
+    strcpy(player[3].password, pass);
+    player[4].ID = 4;
+    player[4].Rank = 1000;
+    player[4].KD = 0.1;
+    player[4].Chicken = 8;
+    player[5].ID = 6;
+    player[5].Rank = 12;
+    player[5].KD = 3.1;
+    player[5].Chicken = 1;
+
+    int i;
+    for (i = 1; i <= 5; i++) {
+        p = (LinkList) malloc(sizeof(LinkNode));
+        p->data = player[i];
+        p->next = (*L)->next;
+        (*L)->next = p;
+    }
+}
+
+/*
+单链表的遍历
+*/
+void LinklistPrint(LinkList *L) {
+    if (L == NULL) {
+        //空链表无需打印
+        return;
+    }
+    LinkList p;
+    p = *L;
+    p = p->next;
+    while (p != NULL) {
+        //打印元素和其对应的地址
+        printf("玩家ID:%lld\n", p->data.ID);
+        printf("玩家Rank:%d\n", p->data.Rank);
+        printf("玩家K/D:%.1lf\n", p->data.KD);
+        printf("玩家吃鸡率:%%%d\n", p->data.Chicken);
+        //移动cur,以达到遍历链表的目的
+        p = p->next;
+    }
+    printf("\n\n");
+
+}
+
+/*
+单链表的数量
+*/
+int getNum(LinkList *L) {
+    int Num = 0;
+    if (L == NULL) {
+        //空链表个数为0
+        return 0;
+    }
+    LinkList p;
+    p = *L;
+    p = p->next;
+    while (p != NULL) {
+        //自增
+        Num++;
+        //移动cur,以达到遍历链表的目的
+        p = p->next;
+    }
+    return Num;
+}
+
+/*
+ 单链表寻找链表的前驱
+ */
+LinkList findPre(LinkList *L, LinkList node) {
+    LinkList p = *L;
+    while (p->next != node) {
+        p = p->next;
+    }
+    return p;
+}
+
+/*
+ * 根据两个节点的前驱，交换两个节点
+ * 需要考虑的情况有：
+ * 1.如果节点1和节点2相同，不需要交换
+ * 2.如果其中一个节点为头节点，原则上不交换
+ * 3.如果两个节点相邻，需要做一些特殊处理。
+ * 4.其他情况下只需要找到节点的前驱，然后做相应的指针的调整。
+ **/
+void doExchange(LinkList L, LinkList node1, LinkList node2) {
+
+    LinkList prenode1 = NULL;  //待交换节点node1的前一个节点
+    LinkList postnode1 = NULL; //待交换节点node1的后一个节点
+    LinkList prenode2 = NULL;  //待交换节点node2的前一个节点
+    LinkList postnode2 = NULL; //待交换节点node2的后一个节点
+
+    //头节点不交换
+    if (node1 == L || node2 == L) {
+        return;
+    }
+
+    //相同不需交换
+    if (node1 == node2) {
+        return;
+    }
+
+    prenode1 = findPre(L, node1);
+    prenode2 = findPre(L, node2);
+    postnode1 = node1->next;
+    postnode2 = node2->next;
+
+    //节点相邻情况处理
+    if (postnode1 == node2) {
+        prenode1->next = node2;
+        node2->next = node1;
+        node1->next = postnode2;
+        return;
+    }
+
+    if (postnode2 == node1) {
+        prenode2->next = node1;
+        node1->next = node2;
+        node2->next = postnode1;
+        return;
+    }
+
+    //其他情况下，直接交换节点
+    prenode1->next = node2;
+    node2->next = postnode1;
+    prenode2->next = node1;
+    node1->next = postnode2;
+}
+
+/*
+ * 链表交换按位置
+ */
+void Exchange(LinkList L, int i, int j) {
+    doExchange(L, GetElemNode(L, i), GetElemNode(L, j));
+}
+
+/*
+文件从链表写入
+*/
+int FileWrite(LinkList *L) {
+
+    int num = 0;
+    FILE *fp = fopen("../PlayerList.txt", "wb+");
+    if (fp == NULL) {
+        printf("找不到用户信息");
+        exit(1);
+    }
+    if (L == NULL) {
+        //空链表无需写入
+        return 0;
+    }
+
+    LinkList p = *L;
+    p = p->next;
+    while (p != NULL) {
+        fwrite(p, sizeof(LinkNode), 1, fp);
+        p = p->next;
+        num++;
+    }
+    fclose(fp);
+    return num;
+
+}
+
+/*
+文件读取到链表
+*/
+int FileRead(LinkList *L) {
+    int num = 0;
+    FILE *fp = fopen("../PlayerList.txt", "r");
+    if (fp == NULL) {
+        printf("找不到用户信息");
+        exit(1);
+    }
+    LinkList p = *L, pTemp;
+    while (1) {
+        pTemp = (LinkList) malloc(sizeof(LinkNode));
+        pTemp->next = NULL;
+        /*这里用一个中间结点，临时储存，fread读一次才能决定是否添加结点，直接用p添加结点会错误，本身就是空文件时会多出一个结点，存的垃圾值，而fread必须有一块内存才能读*/
+        if ((fread(pTemp, sizeof(LinkNode), 1, fp)) != 0) {
+            p->next = pTemp;
+            p = p->next;
+            num++;
+        } else
+            break;
+    }
+    p->next = NULL;
+    free(pTemp);
+    fclose(fp);
+    return num;
+
+}
+
+/*
+ * 基于链表的基数排序
+ */
+void radix_sort(LinkList L, int s) {
+    int i, j, k, temp;
+    int num = getNum(L);
+    switch (s) {
+        case 1: {
+            Player p1;
+            Player p2;
+            for (i = 1; i <= num; i++) {
+                for (j = i + 1; j <= num; j++) {
+
+                    GetElem(L, i, &p1);
+                    GetElem(L, j, &p2);
+                    if (p1.Rank < p2.Rank) {
+
+                        Exchange(L, i, j);
+                    }
+                }
+            }
+        }
+            break;
+        case 2: {
+            Player p1;
+            Player p2;
+            for (i = 1; i <= num; i++) {
+                for (j = i + 1; j <= num; j++) {
+
+                    GetElem(L, i, &p1);
+                    GetElem(L, j, &p2);
+                    if (p1.KD < p2.KD) {
+
+                        Exchange(L, i, j);
+                    }
+                }
+            }
+        }
+
+            break;
+        case 3: {
+            Player p1;
+            Player p2;
+            for (i = 1; i <= num; i++) {
+                for (j = i + 1; j <= num; j++) {
+
+                    GetElem(L, i, &p1);
+                    GetElem(L, j, &p2);
+                    if (p1.Chicken < p2.Chicken) {
+
+                        Exchange(L, i, j);
+                    }
+                }
+            }
+        }
+            break;
+
+    }
+
+}
+/*
+ * 游戏地图
+ */
+void Map(){
+    srand( (unsigned)time( NULL ) );
+    int n=rand() % 4;
+    switch (n){
+        case 1:{
+            printf("\t\t您降落到了艾伦格机场");
+        }
+            break;
+        case 2:{
+            printf("\t\t您降落到了米拉玛");
+        }
+            break;
+        case 3:{
+            printf("\t\t您降落到了萨诺");
+        }
+            break;
+        case 4:{
+            printf("\t\t您降落到了维寒迪");
+        }
+            break;
+    }
+}
+/*
+ * 枪械
+ */
+void Gun(){
+    srand( (unsigned)time( NULL ) );
+    int n=rand() % 11;
+    switch (n){
+        case 1:{
+            printf("\t\t您捡到了M416");
+        }
+            break;
+        case 2:{
+            printf("\t\t您捡到了Scar");
+        }
+            break;
+        case 3:{
+            printf("\t\t您捡到了SKS(29杀神器)");
+        }
+            break;
+        case 4:{
+            printf("\t\t您捡到了Kar98");
+        }
+            break;
+        case 5:{
+            printf("\t\t您捡到了M16");
+        }
+            break;
+        case 6:{
+            printf("\t\t您捡到了P18c");
+        }
+            break;
+        case 7:{
+            printf("\t\t您捡到了VSS");
+        }
+            break;
+        case 8:{
+            printf("\t\t您捡到了平底锅");
+        }
+            break;
+        case 9:{
+            printf("\t\t您捡到了AKM");
+        }
+            break;
+        case 10:{
+            printf("\t\t您捡到了AWM");
+        }
+            break;
+        case 11:{
+            printf("\t\t您捡到了S686");
+        }
+            break;
+    }
+}
+/*
+ * 遭遇敌人
+ */
+int Army(){
+    srand( (unsigned)time( NULL ) );
+    int n=rand() % 10;
+    switch (n){
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:{
+            printf("\t\t您击杀了一名敌人");
+        }
+            break;
+        case 6:{
+            printf("\t\t您开车跑了");
+        }
+            break;
+        case 7:{
+            printf("\t\t您被毒死了");
+        }
+            break;
+        case 8:{
+            printf("\t\t您被打死了");
+        }
+            break;
+    }
+}
+/*
+ * 防具
+ */
+void Armor(){
+    srand( (unsigned)time( NULL ) );
+    int n=rand() % 11;
+    switch (n){
+        case 1:{
+            printf("\t\t您捡到了一级甲");
+        }
+            break;
+        case 2:{
+            printf("\t\t您捡到了二级甲");
+        }
+            break;
+        case 3:{
+            printf("\t\t您捡到了三级甲");
+        }
+            break;
+        case 4:{
+            printf("\t\t您捡到了原谅脑壳");
+        }
+            break;
+        case 5:{
+            printf("\t\t您捡到了二级头");
+        }
+            break;
+        case 6:{
+            printf("\t\t您捡到了三级头");
+        }
+            break;
+        case 7:{
+            printf("\t\t您捡到了绷带");
+        }
+            break;
+        case 8:{
+            printf("\t\t您捡到了急救包");
+        }
+            break;
+        case 9:{
+            printf("\t\t您捡到了能量饮料");
+        }
+            break;
+        case 10:{
+            printf("\t\t您捡到了肾上腺素");
+        }
+            break;
+        case 11:{
+            printf("\t\t您捡到了医疗箱");
+        }
+            break;
+    }
+}
+
+/*
+ * 添加机器人
+ */
+int addRobot(LinkList *L,int num){
+    int i;
+    int n=0;
+    srand( (unsigned)time( NULL ) );
+    for(i=1;i<=num;i++){
+        ElemType e;
+        e.ID=rand() % 1000;
+        e.Rank=rand()%5000;
+        e.KD=(rand()%100)*0.1;
+        e.Chicken=rand()%100;
+        ListInsert(L,e);
+        n++;
+    }
+    return n;
+}
+
+/*
+ * 吃鸡匹配
+ */
+void ChickenMatch(LinkList *L){
+    int i=0;
+    LinkList p;
+    p = *L;
+    p = p->next;
+    while (p != NULL&&i<=2) {
+        if(abs(LoginPlayer->data.Rank-p->data.Rank)<300)
+        {
+            i++;
+            //打印元素和其对应的地址
+            printf("\t\t已找到匹配玩家%d号",i);
+            printf("\t\t玩家ID:%lld\n", p->data.ID);
+            printf("\t\t玩家Rank:%d\n", p->data.Rank);
+            printf("\t\t玩家K/D:%.3lf\n", p->data.KD);
+            printf("\t\t玩家吃鸡率:%%%d\n", p->data.Chicken);
+        }
+
+        //移动p,以达到遍历链表的目的
+        p = p->next;
+    }
+    printf("\t\t游戏开始\n");
+    Map();
+
+    printf("\t\t游戏结束\n");
+    int number;
+    printf("\t\t1.返回上一级主界面\n");
+    printf("\t\t0.退出\n");
+    scanf("%d",&number);
+    switch (number){
+        case 1:{
+            AdministratorMenu(L);
+        }
+            break;
+        case 0:{
+            exit(0);
+        }
+    }
+    printf("\n\n");
+
+}
+/*
+ * 二分查找
+ */
+long long binarySearch(LinkList L, int kind, int key) {
+    long long low = 0;
+    long long high = getNum(L) - 1;
+    radix_sort(L, kind);
+    switch (kind) {
+        case 1: {
+            while (low <= high) {
+                long long mid = (low + high) / 2;
+                ElemType midVal;
+                GetElem(L, mid, &midVal);
+                if (midVal.Rank < key)
+                    low = mid + 1;
+                else if (midVal.Rank > key)
+                    high = mid - 1;
+                else
+                    return mid;
+            }
+            return -1;
+        }
+            break;
+        case 2: {
+            while (low <= high) {
+                long long mid = (low + high) / 2;
+                ElemType midVal;
+                GetElem(L, mid, &midVal);
+                if (midVal.KD < key)
+                    low = mid + 1;
+                else if (midVal.KD > key)
+                    high = mid - 1;
+                else
+                    return mid;
+            }
+            return -1;
+        }
+            break;
+        case 3: {
+            while (low <= high) {
+                long long mid = (low + high) / 2;
+                ElemType midVal;
+                GetElem(L, mid, &midVal);
+                if (midVal.Chicken < key)
+                    low = mid + 1;
+                else if (midVal.Chicken > key)
+                    high = mid - 1;
+                else
+                    return mid;
+            }
+            return -1;
+        }
+            break;
+        case 4:{
+            while (low <= high) {
+                long long mid = (low + high) / 2;
+                ElemType midVal;
+                GetElem(L, mid, &midVal);
+                if (midVal.ID < key)
+                    low = mid + 1;
+                else if (midVal.ID > key)
+                    high = mid - 1;
+                else
+                    return mid;
+            }
+            return -1;
+        }
+            break;
+    }
+
+}
+
+/*
+管理员菜单
+*/
+void AdministratorMenu(LinkList L){
+    int number;
+    printf("***************************************\n");
+    printf("          吃鸡匹配系统管理员菜单模块        \n");
+    printf("***************************************\n");
+    printf("\t\t1.按玩家ID查询\n");
+    printf("\t\t2.按玩家总评分查询\n");
+    printf("\t\t3.按玩家K/D查询功能\n");
+    printf("\t\t4.玩家匹配\n");
+    printf("\t\t5.新增玩家信息\n");
+    printf("\t\t6.删除玩家信息\n");
+    printf("\t\t7.查看所有玩家信息\n");
+    printf("\t\t8.批量添加机器人\n");
+    printf("\t\t0.退出匹配系统\n");
+    printf("******************END******************\n");
+    scanf("%d", &number);
+    switch (number) {
+        case 1: {
+            long long ID;
+            ElemType e;
+            printf("\t\t请输入玩家ID\n");
+            scanf("%lld", &ID);
+            binarySearch(L,4,ID);
+            GetElem(L,ID,&e);
+            printf("\t玩家ID:%lld\n", e.ID);
+            printf("\t玩家Rank:%d\n", e.Rank);
+            printf("\t玩家K/D:%.3lf\n", e.KD);
+            printf("\t玩家吃几率:%d\n", e.Chicken);
+
+        }
+            break;
+
+        case 2:{
+            int Rank;
+            ElemType e;
+            printf("\t\t请输入玩家Rank\n");
+            scanf("%lld", &Rank);
+            LinkSearchbyRank(L,Rank);
+
+        }
+            break;
+        case 3:{
+            int KD;
+            ElemType e;
+            printf("\t\t请输入玩家K/D\n");
+            scanf("%lld", &KD);
+            LinkSearchbyKD(L,KD);
+        }
+            break;
+        case 4:{
+            ChickenMatch(L);
+            int number;
+            printf("\t\t1.返回上一级主界面\n");
+            printf("\t\t0.退出\n");
+            scanf("%d",&number);
+            switch (number){
+                case 1:{
+                    AdministratorMenu(L);
+                }
+                    break;
+                case 0:{
+                    exit(0);
+                }
+            }
+
+        }
+            break;
+        case 5:{
+            ElemType e;
+            char password[20];
+            printf("\t\t请输入玩家ID\n");
+            scanf("%lld",&e.ID);
+            printf("\t\t请输入玩家密码\n");
+            scanf("%s",password);
+            strcpy(e.password,password);
+            printf("\t\t请输入玩家Rank\n");
+            scanf("%d",&e.Rank);
+            printf("\t\t请输入玩家K/D\n");
+            scanf("%lf",&e.KD);
+            printf("\t\t请输入玩家吃鸡概率\n");
+            scanf("%d",&e.Chicken);
+            ListInsert(L,e);
+            printf("\t\t玩家ID%lld创建成功\n",e.ID);
+
+        }
+            break;
+        case 6:{
+            long long ID;
+            printf("\t\t请输入玩家ID\n");
+            scanf("%lld",&ID);
+            ListDeletebyID(L,ID);
+            printf("\t\t玩家ID%lld删除成功\n",ID);
+            int number;
+            printf("\t\t1.返回上一级主界面\n");
+            printf("\t\t0.退出\n");
+            scanf("%d",&number);
+            switch (number){
+                case 1:{
+                    AdministratorMenu(L);
+                }
+                    break;
+                case 0:{
+                    exit(0);
+                }
+            }
+        }
+            break;
+        case 7:{
+            int number;
+            LinklistPrint(L);
+            printf("\t\t1.返回上一级主界面\n");
+            printf("\t\t0.退出\n");
+            scanf("%d",&number);
+            switch (number){
+                case 1:{
+                    AdministratorMenu(L);
+                }
+                    break;
+                case 0:{
+                    exit(0);
+                }
+            }
+        }
+            break;
+        case 8:{
+            int num;
+            printf("\t\t请输入添加机器人的数量\n");
+            scanf("%d",&num);
+            int n;
+            n=addRobot(L,num);
+            printf("\t\t成功添加%d个机器人\n",n);
+            printf("\t\t1.返回上一级主界面\n");
+            printf("\t\t0.退出\n");
+            scanf("%d",&number);
+            switch (number){
+                case 1:{
+                    AdministratorMenu(L);
+                }
+                    break;
+                case 0:{
+                    exit(0);
+                }
+            }
+
+        }
+            break;
+        case 0:
+            exit(0);
+            break;
+        default:
+            printf("\t\t输入错误，请重新输入：\n");
+    }
+}
+
+/*
+注册菜单
+*/
+void RegisterMenu(LinkList L) {
+    long long ID;
+    char pass1[20];
+    char pass2[20];
+    printf("***************************************\n");
+    printf("           欢迎使用吃鸡匹配系统注册模块        \n");
+    printf("***************************************\n");
+    printf("\t\t请输入你要注册的ID\n");
+    scanf("%lld", &ID);
+    printf("\t\t请输入你的密码\n");
+    scanf("%s", pass1);
+    printf("请再次输入你的密码\n");
+    scanf("%s", pass2);
+    if (strcmp(pass1, pass2) == 0) {
+        ElemType e;
+        e.ID = ID;
+        e.Chicken = 0;
+        e.KD = 0;
+        e.Rank = 0;
+        e.Competence = 1;
+        strcpy(e.password, pass1);
+        printf("123");
+        ListInsert(L, e);
+        printf("恭喜玩家");
+        printf("%lld", ID);
+        printf("注册成功\n");
+    }
+}
+
+/*
+登录菜单
+*/
+void LoginMenu(LinkList L) {
+    long long ID;
+    char pass[20];
+    printf("***************************************\n");
+    printf("           欢迎使用吃鸡匹配系统登录模块        \n");
+    printf("***************************************\n");
+    printf("\t\t请输入你要登录的ID\n");
+    scanf("%lld", &ID);
+    printf("\t\t请输入你的密码\n");
+    scanf("%s", pass);
+    ElemType e;
+    LinkSearch(L, &e, ID);
+    if (strcmp(pass, e.password) == 0) {
+        printf("\t\t恭喜玩家");
+        printf("%lld\n", ID);
+        printf("\t\t登录成功\n");
+        LoginPlayer->data=e;
+        AdministratorMenu(L);
+    } else {
+        printf("\t\t登录失败");
+    }
+}
+
+/*
+主界面方法
+*/
+void showMenu(LinkList L) {
+    int number;
+    printf("***************************************\n");
+    printf("           欢迎使用吃鸡匹配系统        \n");
+    printf("***************************************\n");
+    printf("\t\t1、登录\n");
+    printf("\t\t2、注册\n");
+    printf("\t\t0、退出\n");
+    printf("******************END******************\n");
+    scanf("%d", &number);
+    switch (number) {
+        case 1:
+            LoginMenu(L);
+            break;
+        case 2:
+            RegisterMenu(L);
+            break;
+        case 0:
+            exit(0);
+            break;
+        default:
+            printf("\t\t输入错误，请重新输入：\n");
+    }
+}
+
+int main() {
+    LinkList L;
+    L = (LinkList) malloc(sizeof(LinkNode));
+    CreativeListHead(L);
+    ElemType e;
+    LoginPlayer = (LinkList) malloc(sizeof(LinkNode));
+    AdministratorMenu(L);
+    /* printf("从链表写入文件的个数为：");
+     printf("%d\n",FileWrite(L));*/
+    /*printf("从链表读到文件的个数为：");
+    printf("%d\n",FileRead(L));*/
+    /*  LinklistPrint(L);
+      printf("基数排序后：\n");
+      radix_sort(L,3);
+      ElemType player1;
+      GetElem(L,binarySearch(L, 1,1200),&player1);
+      printf("%d",player1.ID);
+     */
+}
