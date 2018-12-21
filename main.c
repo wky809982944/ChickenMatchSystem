@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #define ElemType Player
 #define Status int
 #define ERROR 0
@@ -13,7 +14,10 @@ typedef struct Player {
     char password[20];
     int Rank;
     double KD;
+    int kill;
+    int death;
     int Chicken;
+    int all;
     int Competence;
 } Player;
 /*
@@ -31,6 +35,7 @@ typedef struct LinkNode *LinkList;
 
 LinkList LoginPlayer;
 void AdministratorMenu(LinkList L);
+void showMenu(LinkList L);
 /*
 单链表的读取
 */
@@ -71,7 +76,7 @@ void LinkSearchbyKD(LinkList *L, double key) {
             printf("\t\t玩家ID:%lld\n", p->data.ID);
             printf("\t\t玩家Rank:%d\n",  p->data.Rank);
             printf("\t\t玩家K/D:%.3lf\n",  p->data.KD);
-            printf("\t\t玩家Chicken:%.3lf\n",  p->data.Chicken);
+            printf("\t\t玩家Chicken:%%%d\n",  p->data.Chicken);
         }
         /*让p指向下一个节点*/
         p = p->next;
@@ -94,7 +99,7 @@ void LinkSearchbyRank(LinkList *L,int key) {
             printf("\t\t玩家ID:%lld\n", p->data.ID);
             printf("\t\t玩家Rank:%d\n",  p->data.Rank);
             printf("\t\t玩家K/D:%.3lf\n",  p->data.KD);
-            printf("\t\t玩家Chicken:%.3lf\n",  p->data.Chicken);
+            printf("\t\t玩家Chicken:%%%d\n",  p->data.Chicken);
         }
         /*让p指向下一个节点*/
         p = p->next;
@@ -145,6 +150,29 @@ LinkList GetElemNode(LinkList *L, long long i) {
         return ERROR;
     return p;
 }
+/*
+单链表的读取按ID
+*/
+LinkList GetElemNodebyID(LinkList *L, long long ID) {
+    long long j;
+    /*声明一指针p*/
+    LinkList p;
+    /*让p指向链表L的第一个节点*/
+    p = *L;
+    /*j为计数器*/
+    j = 0;
+    /*p不为空且计数器j还没有等于i时，循环继续*/
+    while (p->next && j !=ID) {
+        /*让p指向下一个节点*/
+        p = p->next;
+        ++j;
+    }
+    /*第i个节点不存在*/
+    if (!p)
+        return ERROR;
+    return p;
+}
+
 /*
 单链表在末尾插入
 */
@@ -243,7 +271,7 @@ void CreativeListHead(LinkList *L) {
     *L = (LinkList) malloc(sizeof(LinkNode));
     (*L)->next = NULL;
     LinkList p;
-    player[1].ID = 1;
+   /* player[1].ID = 1;
     player[1].Rank = 300;
     player[1].KD = 3.1;
     player[1].Chicken =25;
@@ -264,7 +292,7 @@ void CreativeListHead(LinkList *L) {
     player[5].ID = 6;
     player[5].Rank = 12;
     player[5].KD = 3.1;
-    player[5].Chicken = 1;
+    player[5].Chicken = 1;*/
 
     int i;
     for (i = 1; i <= 5; i++) {
@@ -288,10 +316,10 @@ void LinklistPrint(LinkList *L) {
     p = p->next;
     while (p != NULL) {
         //打印元素和其对应的地址
-        printf("玩家ID:%lld\n", p->data.ID);
-        printf("玩家Rank:%d\n", p->data.Rank);
-        printf("玩家K/D:%.1lf\n", p->data.KD);
-        printf("玩家吃鸡率:%%%d\n", p->data.Chicken);
+        printf("\t\t玩家ID:%lld\n", p->data.ID);
+        printf("\t\t玩家Rank:%d\n", p->data.Rank);
+        printf("\t\t玩家K/D:%.1lf\n", p->data.KD);
+        printf("\t\t玩家吃鸡率:%%%d\n", p->data.Chicken);
         //移动cur,以达到遍历链表的目的
         p = p->next;
     }
@@ -396,11 +424,11 @@ void Exchange(LinkList L, int i, int j) {
 int FileWrite(LinkList *L) {
 
     int num = 0;
-    FILE *fp = fopen("../PlayerList.txt", "wb+");
-    if (fp == NULL) {
+    FILE *fp = fopen("C:\\Users\\ROG\\Desktop\\ChickenMatchSystem\\PlayerList.txt", "w+");
+    /*if (fp == NULL) {
         printf("找不到用户信息");
         exit(1);
-    }
+    }*/
     if (L == NULL) {
         //空链表无需写入
         return 0;
@@ -423,7 +451,7 @@ int FileWrite(LinkList *L) {
 */
 int FileRead(LinkList *L) {
     int num = 0;
-    FILE *fp = fopen("../PlayerList.txt", "r");
+    FILE *fp = fopen("C:\\Users\\ROG\\Desktop\\ChickenMatchSystem\\PlayerList.txt", "r");
     if (fp == NULL) {
         printf("找不到用户信息");
         exit(1);
@@ -515,19 +543,19 @@ void Map(){
     int n=rand() % 4;
     switch (n){
         case 1:{
-            printf("\t\t您降落到了艾伦格机场");
+            printf("\t\t您降落到了艾伦格机场\n");
         }
             break;
         case 2:{
-            printf("\t\t您降落到了米拉玛");
+            printf("\t\t您降落到了米拉玛\n");
         }
             break;
         case 3:{
-            printf("\t\t您降落到了萨诺");
+            printf("\t\t您降落到了萨诺\n");
         }
             break;
         case 4:{
-            printf("\t\t您降落到了维寒迪");
+            printf("\t\t您降落到了维寒迪\n");
         }
             break;
     }
@@ -540,47 +568,47 @@ void Gun(){
     int n=rand() % 11;
     switch (n){
         case 1:{
-            printf("\t\t您捡到了M416");
+            printf("\t\t您捡到了M416\n");
         }
             break;
         case 2:{
-            printf("\t\t您捡到了Scar");
+            printf("\t\t您捡到了Scar\n");
         }
             break;
         case 3:{
-            printf("\t\t您捡到了SKS(29杀神器)");
+            printf("\t\t您捡到了SKS(29杀神器)\n");
         }
             break;
         case 4:{
-            printf("\t\t您捡到了Kar98");
+            printf("\t\t您捡到了Kar98\n");
         }
             break;
         case 5:{
-            printf("\t\t您捡到了M16");
+            printf("\t\t您捡到了M16\n");
         }
             break;
         case 6:{
-            printf("\t\t您捡到了P18c");
+            printf("\t\t您捡到了P18c\n");
         }
             break;
         case 7:{
-            printf("\t\t您捡到了VSS");
+            printf("\t\t您捡到了VSS\n");
         }
             break;
         case 8:{
-            printf("\t\t您捡到了平底锅");
+            printf("\t\t您捡到了平底锅\n");
         }
             break;
         case 9:{
-            printf("\t\t您捡到了AKM");
+            printf("\t\t您捡到了AKM\n");
         }
             break;
         case 10:{
-            printf("\t\t您捡到了AWM");
+            printf("\t\t您捡到了AWM\n");
         }
             break;
         case 11:{
-            printf("\t\t您捡到了S686");
+            printf("\t\t您捡到了S686\n");
         }
             break;
     }
@@ -588,30 +616,34 @@ void Gun(){
 /*
  * 遭遇敌人
  */
-int Army(){
+double Army(){
     srand( (unsigned)time( NULL ) );
-    int n=rand() % 10;
+    int n=rand() % 12;
     switch (n){
         case 1:
         case 2:
         case 3:
         case 4:
         case 5:{
-            printf("\t\t您击杀了一名敌人");
+            printf("\t\t您击杀了一名敌人\n");
+            return 1;
         }
-            break;
         case 6:{
-            printf("\t\t您开车跑了");
+            printf("\t\t您开车跑了\n");
+            return -1;
         }
-            break;
-        case 7:{
-            printf("\t\t您被毒死了");
-        }
-            break;
+        case 7:
         case 8:{
-            printf("\t\t您被打死了");
+            printf("\t\t您被毒死了\n");
+            return -1;
         }
-            break;
+        case 9:
+        case 10:
+        case 11:
+        case 12:{
+            printf("\t\t您被击杀了\n");
+            return -1;
+        }
     }
 }
 /*
@@ -622,47 +654,47 @@ void Armor(){
     int n=rand() % 11;
     switch (n){
         case 1:{
-            printf("\t\t您捡到了一级甲");
+            printf("\t\t您捡到了一级甲\n");
         }
             break;
         case 2:{
-            printf("\t\t您捡到了二级甲");
+            printf("\t\t您捡到了二级甲\n");
         }
             break;
         case 3:{
-            printf("\t\t您捡到了三级甲");
+            printf("\t\t您捡到了三级甲\n");
         }
             break;
         case 4:{
-            printf("\t\t您捡到了原谅脑壳");
+            printf("\t\t您捡到了原谅脑壳\n");
         }
             break;
         case 5:{
-            printf("\t\t您捡到了二级头");
+            printf("\t\t您捡到了二级头\n");
         }
             break;
         case 6:{
-            printf("\t\t您捡到了三级头");
+            printf("\t\t您捡到了三级头\n");
         }
             break;
         case 7:{
-            printf("\t\t您捡到了绷带");
+            printf("\t\t您捡到了绷带\n");
         }
             break;
         case 8:{
-            printf("\t\t您捡到了急救包");
+            printf("\t\t您捡到了急救包\n");
         }
             break;
         case 9:{
-            printf("\t\t您捡到了能量饮料");
+            printf("\t\t您捡到了能量饮料\n");
         }
             break;
         case 10:{
-            printf("\t\t您捡到了肾上腺素");
+            printf("\t\t您捡到了肾上腺素\n");
         }
             break;
         case 11:{
-            printf("\t\t您捡到了医疗箱");
+            printf("\t\t您捡到了医疗箱\n");
         }
             break;
     }
@@ -692,15 +724,18 @@ int addRobot(LinkList *L,int num){
  */
 void ChickenMatch(LinkList *L){
     int i=0;
+    int alive=1;
+    double kill=0;
+    int Rank=100;
     LinkList p;
     p = *L;
     p = p->next;
-    while (p != NULL&&i<=2) {
+    while (p != NULL&&i<10) {
         if(abs(LoginPlayer->data.Rank-p->data.Rank)<300)
         {
             i++;
             //打印元素和其对应的地址
-            printf("\t\t已找到匹配玩家%d号",i);
+            printf("\t\t已找到匹配玩家%d号\n",i);
             printf("\t\t玩家ID:%lld\n", p->data.ID);
             printf("\t\t玩家Rank:%d\n", p->data.Rank);
             printf("\t\t玩家K/D:%.3lf\n", p->data.KD);
@@ -710,9 +745,87 @@ void ChickenMatch(LinkList *L){
         //移动p,以达到遍历链表的目的
         p = p->next;
     }
-    printf("\t\t游戏开始\n");
+    printf("\t\t游戏开始\n\n\n\n");
     Map();
-
+    srand( (unsigned)time( NULL ) );
+    for (i = 0; i < 4; i++) {
+        int k=rand()%10;
+        switch (k){
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            {
+                int x=Army();
+                if(x==-1){
+                    alive=0;
+                    goto here;
+                }
+                kill+=x;
+            }
+                break;
+            case 6:
+            case 7:
+            case 8:
+            {
+                Gun();
+            }
+                break;
+            case 9:
+            case 10:
+            case 11:
+            {
+                Armor();
+            }
+                break;
+        }
+        Rank-=25;
+    }
+    if(alive){
+        printf("\t\t本局游戏您一共击杀%.0lf\n",kill);
+        printf("\t\t大吉大利今晚吃鸡\n");
+        LinkList p;
+        p = (LinkList) malloc(sizeof(LinkNode));
+        p=GetElemNode(L,LoginPlayer->data.ID);
+        LoginPlayer->data.Rank+=25;
+        LoginPlayer->data.KD+=kill/(1+LoginPlayer->data.KD);
+        LoginPlayer->data.Chicken++;
+        p->data=LoginPlayer->data;
+    }
+    if(!alive)
+    {
+        here:
+        printf("\t\t本局游戏您一共击杀%.0lf\n",kill);
+        printf("\t\t再接再厉下次吃鸡\n");
+        LinkList p;
+        p = (LinkList) malloc(sizeof(LinkNode));
+        p=GetElemNode(L,LoginPlayer->data.ID);
+        switch (Rank){
+            case 100:
+            {
+                LoginPlayer->data.Rank-=30;
+            }
+                break;
+            case 75:
+            {
+                LoginPlayer->data.Rank-=20;
+            }
+                break;
+            case 50:
+            {
+                LoginPlayer->data.Rank-=10;
+            }
+                break;
+            case 25:{
+                LoginPlayer->data.Rank+=10;
+            }
+                break;
+        }
+        LoginPlayer->data.KD-=kill/(1+LoginPlayer->data.KD);
+        LoginPlayer->data.Chicken--;
+        p->data=LoginPlayer->data;
+    }
     printf("\t\t游戏结束\n");
     int number;
     printf("\t\t1.返回上一级主界面\n");
@@ -818,6 +931,7 @@ void AdministratorMenu(LinkList L){
     printf("\t\t6.删除玩家信息\n");
     printf("\t\t7.查看所有玩家信息\n");
     printf("\t\t8.批量添加机器人\n");
+    printf("\t\t9.保存到文件后退出匹配系统\n");
     printf("\t\t0.退出匹配系统\n");
     printf("******************END******************\n");
     scanf("%d", &number);
@@ -832,8 +946,27 @@ void AdministratorMenu(LinkList L){
             printf("\t玩家ID:%lld\n", e.ID);
             printf("\t玩家Rank:%d\n", e.Rank);
             printf("\t玩家K/D:%.3lf\n", e.KD);
-            printf("\t玩家吃几率:%d\n", e.Chicken);
-
+            printf("\t玩家吃鸡率:%d\n", e.Chicken);
+            int number;
+            printf("\t\t1.返回上一级菜单\n");
+            printf("\t\t2.保存到文件后退出\n");
+            printf("\t\t0.直接退出\n");
+            scanf("%d",&number);
+            switch (number){
+                case 1:{
+                    AdministratorMenu(L);
+                }
+                    break;
+                case 2:{
+                    FileWrite(L);
+                }
+                    break;
+                case 0:{
+                    exit(0);
+                }
+                default:
+                    printf("\t\t输入错误，请重新输入：\n");
+            }
         }
             break;
 
@@ -843,7 +976,26 @@ void AdministratorMenu(LinkList L){
             printf("\t\t请输入玩家Rank\n");
             scanf("%lld", &Rank);
             LinkSearchbyRank(L,Rank);
-
+            int number;
+            printf("\t\t1.返回上一级菜单\n");
+            printf("\t\t2.保存到文件后退出\n");
+            printf("\t\t0.直接退出\n");
+            scanf("%d",&number);
+            switch (number){
+                case 1:{
+                    AdministratorMenu(L);
+                }
+                    break;
+                case 2:{
+                    FileWrite(L);
+                }
+                    break;
+                case 0:{
+                    exit(0);
+                }
+                default:
+                    printf("\t\t输入错误，请重新输入：\n");
+            }
         }
             break;
         case 3:{
@@ -891,41 +1043,55 @@ void AdministratorMenu(LinkList L){
 
         }
             break;
-        case 6:{
+        case 6: {
             long long ID;
             printf("\t\t请输入玩家ID\n");
-            scanf("%lld",&ID);
-            ListDeletebyID(L,ID);
-            printf("\t\t玩家ID%lld删除成功\n",ID);
+            scanf("%lld", &ID);
+            ListDeletebyID(L, ID);
+            printf("\t\t玩家ID%lld删除成功\n", ID);
             int number;
-            printf("\t\t1.返回上一级主界面\n");
-            printf("\t\t0.退出\n");
-            scanf("%d",&number);
-            switch (number){
-                case 1:{
+            printf("\t\t1.返回上一级菜单\n");
+            printf("\t\t2.保存到文件后退出\n");
+            printf("\t\t0.直接退出\n");
+            scanf("%d", &number);
+            switch (number) {
+                case 1: {
                     AdministratorMenu(L);
                 }
                     break;
-                case 0:{
+                case 2: {
+                    FileWrite(L);
+                }
+                    break;
+                case 0: {
                     exit(0);
                 }
+                default:
+                    printf("\t\t输入错误，请重新输入：\n");
             }
         }
             break;
-        case 7:{
+        case 7: {
             int number;
             LinklistPrint(L);
-            printf("\t\t1.返回上一级主界面\n");
-            printf("\t\t0.退出\n");
-            scanf("%d",&number);
-            switch (number){
-                case 1:{
+            printf("\t\t1.返回上一级菜单\n");
+            printf("\t\t2.保存到文件后退出\n");
+            printf("\t\t0.直接退出\n");
+            scanf("%d", &number);
+            switch (number) {
+                case 1: {
                     AdministratorMenu(L);
                 }
                     break;
-                case 0:{
+                case 2: {
+                    FileWrite(L);
+                }
+                    break;
+                case 0: {
                     exit(0);
                 }
+                default:
+                    printf("\t\t输入错误，请重新输入：\n");
             }
         }
             break;
@@ -936,27 +1102,33 @@ void AdministratorMenu(LinkList L){
             int n;
             n=addRobot(L,num);
             printf("\t\t成功添加%d个机器人\n",n);
-            printf("\t\t1.返回上一级主界面\n");
-            printf("\t\t0.退出\n");
+            int number;
+            printf("\t\t1.返回上一级菜单\n");
+            printf("\t\t2.保存到文件后退出\n");
+            printf("\t\t0.直接退出\n");
             scanf("%d",&number);
             switch (number){
                 case 1:{
                     AdministratorMenu(L);
                 }
                     break;
+                case 2:{
+                    FileWrite(L);
+                }
+                    break;
                 case 0:{
                     exit(0);
                 }
+                default:
+                    printf("\t\t输入错误，请重新输入：\n");
             }
-
+    }
+            break;
+        case 9:{
+            FileWrite(L);
         }
             break;
-        case 0:
-            exit(0);
-            break;
-        default:
-            printf("\t\t输入错误，请重新输入：\n");
-    }
+}
 }
 
 /*
@@ -980,7 +1152,7 @@ void RegisterMenu(LinkList L) {
         e.ID = ID;
         e.Chicken = 0;
         e.KD = 0;
-        e.Rank = 0;
+        e.Rank = 800;
         e.Competence = 1;
         strcpy(e.password, pass1);
         printf("123");
@@ -988,6 +1160,8 @@ void RegisterMenu(LinkList L) {
         printf("恭喜玩家");
         printf("%lld", ID);
         printf("注册成功\n");
+        sleep(200);
+        showMenu(L);
     }
 }
 
@@ -1014,6 +1188,9 @@ void LoginMenu(LinkList L) {
         AdministratorMenu(L);
     } else {
         printf("\t\t登录失败");
+        printf("\t\t请重新输入ID和密码");
+        sleep(300);
+        LoginMenu(L);
     }
 }
 
@@ -1036,6 +1213,7 @@ void showMenu(LinkList L) {
             break;
         case 2:
             RegisterMenu(L);
+            showMenu(L);
             break;
         case 0:
             exit(0);
@@ -1044,14 +1222,40 @@ void showMenu(LinkList L) {
             printf("\t\t输入错误，请重新输入：\n");
     }
 }
-
+/*
+ * 退出函数
+ */
+void Exit(LinkList L){
+    int number;
+    printf("\t\t1.返回上一级菜单\n");
+    printf("\t\t2.保存到文件后退出\n");
+    printf("\t\t0.直接退出\n");
+    scanf("%d",&number);
+    switch (number){
+        case 1:{
+            AdministratorMenu(L);
+        }
+            break;
+        case 2:{
+            FileWrite(L);
+        }
+            break;
+        case 0:{
+            exit(0);
+        }
+        default:
+            printf("\t\t输入错误，请重新输入：\n");
+    }
+}
 int main() {
     LinkList L;
     L = (LinkList) malloc(sizeof(LinkNode));
     CreativeListHead(L);
     ElemType e;
     LoginPlayer = (LinkList) malloc(sizeof(LinkNode));
-    AdministratorMenu(L);
+/*    FileWrite(L);*/
+    FileRead(L);
+    showMenu(L);
     /* printf("从链表写入文件的个数为：");
      printf("%d\n",FileWrite(L));*/
     /*printf("从链表读到文件的个数为：");
