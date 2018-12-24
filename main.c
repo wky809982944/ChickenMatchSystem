@@ -119,7 +119,6 @@ Status LinkSearch(LinkList *L, ElemType *e, long long key) {
     while (p->next && p->data.ID != key) {
         /*让p指向下一个节点*/
         p = p->next;
-        printf("%lld\n", p->data.ID);
     }
     /*第i个节点不存在*/
     if (!p)
@@ -267,11 +266,11 @@ Status ListDeletebyID(LinkList *L,long long id){
 /*
 单链表的创建
 */
-void CreativeListHead(LinkList *L) {
-    *L = (LinkList) malloc(sizeof(LinkNode));
-    (*L)->next = NULL;
-    LinkList p;
-   /* player[1].ID = 1;
+void CreativeListHead(LinkList L) {
+    L = (LinkList) malloc(sizeof(LinkNode));
+    L->next = NULL;
+    /*LinkList p;
+    player[1].ID = 1;
     player[1].Rank = 300;
     player[1].KD = 3.1;
     player[1].Chicken =25;
@@ -292,15 +291,16 @@ void CreativeListHead(LinkList *L) {
     player[5].ID = 6;
     player[5].Rank = 12;
     player[5].KD = 3.1;
-    player[5].Chicken = 1;*/
+    player[5].Chicken = 1;
 
     int i;
     for (i = 1; i <= 5; i++) {
         p = (LinkList) malloc(sizeof(LinkNode));
+        p->next=NULL;
         p->data = player[i];
-        p->next = (*L)->next;
-        (*L)->next = p;
-    }
+        p->next = L->next;
+        L->next = p;
+    }*/
 }
 
 /*
@@ -474,11 +474,148 @@ int FileRead(LinkList *L) {
     return num;
 
 }
+/*
+ * 初始化链表
+ */
+void Initiate(LinkNode **head)
+{
+    (*head)=(LinkNode*)malloc(sizeof(LinkNode));
+    (*head)->next=NULL;
+}
+/*
+ * 找到头结点
+ */
+LinkList GetFirstNode(LinkList *head)
+{
+    if(head==NULL)
+    return NULL;
+    else
+    {
+        LinkList p;
+        p=*head;
+        p=p->next;
+        (*head)->next=p->next;
+        return p;
+    }
+}
+
+/*
+ * 添加节点
+ */
+void AppendNode(LinkList head,LinkList node)
+{
+    if(head==NULL) return;
+    else
+    {
+        LinkList p;
+        p=head;
+        while(p->next!=NULL)
+        {
+            p=p->next;
+        }
+        p->next=node;
+        node->next=NULL;
+    }
+}
+
+/*
+ * 重新生成链表
+ */
+void Total(LinkList L,LinkList head)
+{
+    LinkList p;
+    p=L;
+    while(p->next!=NULL)
+    {
+        p=p->next;
+    }
+    p->next=head->next;
+}
+
+/*
+ * 返回int类型的a^n
+ */
+int Power(int a,int n)
+{
+    int y;
+    if(n==0)
+        return 1;
+    else
+    {
+        y=Power(a,n/2);
+        y=y*y;
+        if(n%2==1)
+            y=y*a;
+    }
+    return y;
+}
+
+/*
+ * 获得每一位的数字
+ */
+long long GetNum(LinkList p,int i,int k)
+{
+    long long data;
+    switch (k){
+        case 1:
+            data=p->data.Rank;
+            break;
+        case 2:
+            data=p->data.Chicken;
+            break;
+        case 3:
+            data=p->data.ID;
+    }
+    long long  a;
+    i--;
+    a=data/Power(10,i);
+    return a%10;
+}
 
 /*
  * 基于链表的基数排序
+ * 第二个形参表示参加排序的整数最大位数一共有count位数字
  */
-void radix_sort(LinkList L, int s) {
+void radix_sort(LinkList *head,int count,int kind)
+{
+    LinkList p[10],q;
+    long long i,j,k;
+
+    for(j=1;j<=count;j++)
+    {
+        //十个头结点初始化
+        for(i=0;i<10;i++)
+        {
+            Initiate(&p[i]);
+        }
+        //链表从头到尾扫描，并将扫描到的节点脱离链表。
+        while((*head)->next!=NULL)
+        {
+            q=GetFirstNode(head);
+
+            k=GetNum(q,j,kind); //取得链表节点第j位的元素值k
+            AppendNode(p[k],q);
+            //将该节点连接到10个链表相应的位置
+        }
+        //将10个链表从0-9依次连接到head节点后面
+        for(i=0;i<10;i++)
+        {
+            Total(*head,p[i]);
+        }
+    }
+
+    for(i=0;i<10;i++)
+    {
+        free(p[i]);
+    }
+
+
+}
+
+/*
+ * 基于链表的冒泡排序
+ */
+void bubble_sort(LinkList L, int s) {
     int i, j, k, temp;
     int num = getNum(L);
     switch (s) {
@@ -849,9 +986,9 @@ void ChickenMatch(LinkList *L){
 long long binarySearch(LinkList L, int kind, int key) {
     long long low = 0;
     long long high = getNum(L) - 1;
-    radix_sort(L, kind);
     switch (kind) {
         case 1: {
+            radix_sort(L, 10,1);
             while (low <= high) {
                 long long mid = (low + high) / 2;
                 ElemType midVal;
@@ -867,6 +1004,7 @@ long long binarySearch(LinkList L, int kind, int key) {
         }
             break;
         case 2: {
+            bubble_sort(L,2);
             while (low <= high) {
                 long long mid = (low + high) / 2;
                 ElemType midVal;
@@ -883,6 +1021,7 @@ long long binarySearch(LinkList L, int kind, int key) {
             break;
         case 3: {
             while (low <= high) {
+                radix_sort(L, 10,2);
                 long long mid = (low + high) / 2;
                 ElemType midVal;
                 GetElem(L, mid, &midVal);
@@ -897,6 +1036,7 @@ long long binarySearch(LinkList L, int kind, int key) {
         }
             break;
         case 4:{
+            radix_sort(L, 10,3);
             while (low <= high) {
                 long long mid = (low + high) / 2;
                 ElemType midVal;
@@ -975,7 +1115,12 @@ void AdministratorMenu(LinkList L){
             ElemType e;
             printf("\t\t请输入玩家Rank\n");
             scanf("%lld", &Rank);
-            LinkSearchbyRank(L,Rank);
+            binarySearch(L,1,Rank);
+            GetElem(L,Rank,&e);
+            printf("\t玩家ID:%lld\n", e.ID);
+            printf("\t玩家Rank:%d\n", e.Rank);
+            printf("\t玩家K/D:%.3lf\n", e.KD);
+            printf("\t玩家吃鸡率:%d\n", e.Chicken);
             int number;
             printf("\t\t1.返回上一级菜单\n");
             printf("\t\t2.保存到文件后退出\n");
@@ -1003,7 +1148,32 @@ void AdministratorMenu(LinkList L){
             ElemType e;
             printf("\t\t请输入玩家K/D\n");
             scanf("%lld", &KD);
-            LinkSearchbyKD(L,KD);
+            binarySearch(L,2,KD);
+            GetElem(L,KD,&e);
+            printf("\t玩家ID:%lld\n", e.ID);
+            printf("\t玩家Rank:%d\n", e.Rank);
+            printf("\t玩家K/D:%.3lf\n", e.KD);
+            printf("\t玩家吃鸡率:%d\n", e.Chicken);
+            int number;
+            printf("\t\t1.返回上一级菜单\n");
+            printf("\t\t2.保存到文件后退出\n");
+            printf("\t\t0.直接退出\n");
+            scanf("%d", &number);
+            switch (number) {
+                case 1: {
+                    AdministratorMenu(L);
+                }
+                    break;
+                case 2: {
+                    FileWrite(L);
+                }
+                    break;
+                case 0: {
+                    exit(0);
+                }
+                default:
+                    printf("\t\t输入错误，请重新输入：\n");
+            }
         }
             break;
         case 4:{
@@ -1136,16 +1306,22 @@ void AdministratorMenu(LinkList L){
 */
 void RegisterMenu(LinkList L) {
     long long ID;
+    ElemType check;
     char pass1[20];
     char pass2[20];
     printf("***************************************\n");
     printf("           欢迎使用吃鸡匹配系统注册模块        \n");
     printf("***************************************\n");
-    printf("\t\t请输入你要注册的ID\n");
+    printf("\t\t请输入你要注册的ID（数字）\n");
     scanf("%lld", &ID);
+    LinkSearch(L,&check,ID);
+    if(ID==check.ID){
+        printf("\t\t用户名已存在，请重新注册\n");
+        RegisterMenu(L);
+    }
     printf("\t\t请输入你的密码\n");
     scanf("%s", pass1);
-    printf("请再次输入你的密码\n");
+    printf("\t\t请再次输入你的密码\n");
     scanf("%s", pass2);
     if (strcmp(pass1, pass2) == 0) {
         ElemType e;
@@ -1155,7 +1331,6 @@ void RegisterMenu(LinkList L) {
         e.Rank = 800;
         e.Competence = 1;
         strcpy(e.password, pass1);
-        printf("123");
         ListInsert(L, e);
         printf("恭喜玩家");
         printf("%lld", ID);
@@ -1251,20 +1426,9 @@ int main() {
     LinkList L;
     L = (LinkList) malloc(sizeof(LinkNode));
     CreativeListHead(L);
+    FileRead(L);
     ElemType e;
     LoginPlayer = (LinkList) malloc(sizeof(LinkNode));
-/*    FileWrite(L);*/
-    FileRead(L);
     showMenu(L);
-    /* printf("从链表写入文件的个数为：");
-     printf("%d\n",FileWrite(L));*/
-    /*printf("从链表读到文件的个数为：");
-    printf("%d\n",FileRead(L));*/
-    /*  LinklistPrint(L);
-      printf("基数排序后：\n");
-      radix_sort(L,3);
-      ElemType player1;
-      GetElem(L,binarySearch(L, 1,1200),&player1);
-      printf("%d",player1.ID);
-     */
+
 }
