@@ -3,11 +3,14 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <windows.h>
+#include <math.h>
 #define ElemType Player
 #define Status int
 #define ERROR 0
 #define OK 1
 
+int system(const char *string);
 /*玩家结构体*/
 typedef struct Player {
     long long ID;
@@ -72,7 +75,7 @@ void LinkSearchbyKD(LinkList *L, double key) {
     p = *L;
     /*p不为空且计数器j还没有等于i时，循环继续*/
     while (p->next) {
-        if (p->data.KD == key){
+        if (fabs(p->data.KD - key) < 0.001) {
             printf("\t\t玩家ID:%lld\n", p->data.ID);
             printf("\t\t玩家Rank:%d\n",  p->data.Rank);
             printf("\t\t玩家K/D:%.3lf\n",  p->data.KD);
@@ -367,7 +370,7 @@ LinkList findPre(LinkList *L, LinkList node) {
  * 3.如果两个节点相邻，需要做一些特殊处理。
  * 4.其他情况下只需要找到节点的前驱，然后做相应的指针的调整。
  **/
-void doExchange(LinkList L, LinkList node1, LinkList node2) {
+/*void doExchange(LinkList L, LinkList node1, LinkList node2) {
 
     LinkList prenode1 = NULL;  //待交换节点node1的前一个节点
     LinkList postnode1 = NULL; //待交换节点node1的后一个节点
@@ -409,14 +412,14 @@ void doExchange(LinkList L, LinkList node1, LinkList node2) {
     node2->next = postnode1;
     prenode2->next = node1;
     node1->next = postnode2;
-}
+}*/
 
 /*
  * 链表交换按位置
  */
-void Exchange(LinkList L, int i, int j) {
+/*void Exchange(LinkList L, int i, int j) {
     doExchange(L, GetElemNode(L, i), GetElemNode(L, j));
-}
+}*/
 
 /*
 文件从链表写入
@@ -425,10 +428,10 @@ int FileWrite(LinkList *L) {
 
     int num = 0;
     FILE *fp = fopen("C:\\Users\\ROG\\Desktop\\ChickenMatchSystem\\PlayerList.txt", "w+");
-    /*if (fp == NULL) {
+    if (fp == NULL) {
         printf("找不到用户信息");
         exit(1);
-    }*/
+    }
     if (L == NULL) {
         //空链表无需写入
         return 0;
@@ -488,7 +491,7 @@ void Initiate(LinkNode **head)
 LinkList GetFirstNode(LinkList *head)
 {
     if(head==NULL)
-    return NULL;
+        return NULL;
     else
     {
         LinkList p;
@@ -578,26 +581,36 @@ long long GetNum(LinkList p,int i,int k)
  */
 void radix_sort(LinkList *head,int count,int kind)
 {
+    //定义结构体指针数组，p[10],q;
+    //定义long long i,j,k j用于位数
+    //for循环依次扫描每一位
+    //Initiate十个头结点初始化
+    //GetFirstNode链表从头到尾扫描，并将扫描到的节点脱离链表。
+    //依次脱离节点
+    //取得链表节点第j位的元素值k
+    //将该节点连接到10个链表相应的位置
+
+    //Total将10个链表从0-9依次连接到head节点后面
     LinkList p[10],q;
     long long i,j,k;
 
     for(j=1;j<=count;j++)
     {
-        //十个头结点初始化
+
         for(i=0;i<10;i++)
         {
             Initiate(&p[i]);
         }
-        //链表从头到尾扫描，并将扫描到的节点脱离链表。
+
         while((*head)->next!=NULL)
         {
-            q=GetFirstNode(head);
 
-            k=GetNum(q,j,kind); //取得链表节点第j位的元素值k
+            q=GetFirstNode(head);
+            k = GetNum(q, j, kind);
             AppendNode(p[k],q);
-            //将该节点连接到10个链表相应的位置
+
         }
-        //将10个链表从0-9依次连接到head节点后面
+
         for(i=0;i<10;i++)
         {
             Total(*head,p[i]);
@@ -615,7 +628,7 @@ void radix_sort(LinkList *head,int count,int kind)
 /*
  * 基于链表的冒泡排序
  */
-void bubble_sort(LinkList L, int s) {
+/*void bubble_sort(LinkList L, int s) {
     int i, j, k, temp;
     int num = getNum(L);
     switch (s) {
@@ -671,7 +684,7 @@ void bubble_sort(LinkList L, int s) {
 
     }
 
-}
+}*/
 /*
  * 游戏地图
  */
@@ -1003,22 +1016,22 @@ long long binarySearch(LinkList L, int kind, int key) {
             return -1;
         }
             break;
-        case 2: {
-            bubble_sort(L,2);
-            while (low <= high) {
-                long long mid = (low + high) / 2;
-                ElemType midVal;
-                GetElem(L, mid, &midVal);
-                if (midVal.KD < key)
-                    low = mid + 1;
-                else if (midVal.KD > key)
-                    high = mid - 1;
-                else
-                    return mid;
-            }
-            return -1;
-        }
-            break;
+            /* case 2: {
+                 bubble_sort(L,2);
+                 while (low <= high) {
+                     long long mid = (low + high) / 2;
+                     ElemType midVal;
+                     GetElem(L, mid, &midVal);
+                     if (midVal.KD < key)
+                         low = mid + 1;
+                     else if (midVal.KD > key)
+                         high = mid - 1;
+                     else
+                         return mid;
+                 }
+                 return -1;
+             }
+                 break;*/
         case 3: {
             while (low <= high) {
                 radix_sort(L, 10,2);
@@ -1059,6 +1072,7 @@ long long binarySearch(LinkList L, int kind, int key) {
 管理员菜单
 */
 void AdministratorMenu(LinkList L){
+    system("cls");
     int number;
     printf("***************************************\n");
     printf("          吃鸡匹配系统管理员菜单模块        \n");
@@ -1075,6 +1089,7 @@ void AdministratorMenu(LinkList L){
     printf("\t\t0.退出匹配系统\n");
     printf("******************END******************\n");
     scanf("%d", &number);
+    system("cls");
     switch (number) {
         case 1: {
             long long ID;
@@ -1092,6 +1107,7 @@ void AdministratorMenu(LinkList L){
             printf("\t\t2.保存到文件后退出\n");
             printf("\t\t0.直接退出\n");
             scanf("%d",&number);
+            system("cls");
             switch (number){
                 case 1:{
                     AdministratorMenu(L);
@@ -1115,17 +1131,13 @@ void AdministratorMenu(LinkList L){
             ElemType e;
             printf("\t\t请输入玩家Rank\n");
             scanf("%lld", &Rank);
-            binarySearch(L,1,Rank);
-            GetElem(L,Rank,&e);
-            printf("\t玩家ID:%lld\n", e.ID);
-            printf("\t玩家Rank:%d\n", e.Rank);
-            printf("\t玩家K/D:%.3lf\n", e.KD);
-            printf("\t玩家吃鸡率:%d\n", e.Chicken);
+            LinkSearchbyRank(L, Rank);
             int number;
             printf("\t\t1.返回上一级菜单\n");
             printf("\t\t2.保存到文件后退出\n");
             printf("\t\t0.直接退出\n");
             scanf("%d",&number);
+            system("cls");
             switch (number){
                 case 1:{
                     AdministratorMenu(L);
@@ -1144,21 +1156,17 @@ void AdministratorMenu(LinkList L){
         }
             break;
         case 3:{
-            int KD;
+            double KD;
+            int number;
             ElemType e;
             printf("\t\t请输入玩家K/D\n");
-            scanf("%lld", &KD);
-            binarySearch(L,2,KD);
-            GetElem(L,KD,&e);
-            printf("\t玩家ID:%lld\n", e.ID);
-            printf("\t玩家Rank:%d\n", e.Rank);
-            printf("\t玩家K/D:%.3lf\n", e.KD);
-            printf("\t玩家吃鸡率:%d\n", e.Chicken);
-            int number;
+            scanf("%lf", &KD);
+            LinkSearchbyKD(L, KD);
             printf("\t\t1.返回上一级菜单\n");
             printf("\t\t2.保存到文件后退出\n");
             printf("\t\t0.直接退出\n");
             scanf("%d", &number);
+            system("cls");
             switch (number) {
                 case 1: {
                     AdministratorMenu(L);
@@ -1182,8 +1190,10 @@ void AdministratorMenu(LinkList L){
             printf("\t\t1.返回上一级主界面\n");
             printf("\t\t0.退出\n");
             scanf("%d",&number);
+            system("cls");
             switch (number){
                 case 1:{
+                    system("cls");
                     AdministratorMenu(L);
                 }
                     break;
@@ -1208,8 +1218,30 @@ void AdministratorMenu(LinkList L){
             scanf("%lf",&e.KD);
             printf("\t\t请输入玩家吃鸡概率\n");
             scanf("%d",&e.Chicken);
+            system("cls");
             ListInsert(L,e);
             printf("\t\t玩家ID%lld创建成功\n",e.ID);
+            int number;
+            printf("\t\t1.返回上一级菜单\n");
+            printf("\t\t2.保存到文件后退出\n");
+            printf("\t\t0.直接退出\n");
+            scanf("%d", &number);
+            system("cls");
+            switch (number) {
+                case 1: {
+                    AdministratorMenu(L);
+                }
+                    break;
+                case 2: {
+                    FileWrite(L);
+                }
+                    break;
+                case 0: {
+                    exit(0);
+                }
+                default:
+                    printf("\t\t输入错误，请重新输入：\n");
+            }
 
         }
             break;
@@ -1224,6 +1256,7 @@ void AdministratorMenu(LinkList L){
             printf("\t\t2.保存到文件后退出\n");
             printf("\t\t0.直接退出\n");
             scanf("%d", &number);
+            system("cls");
             switch (number) {
                 case 1: {
                     AdministratorMenu(L);
@@ -1248,6 +1281,7 @@ void AdministratorMenu(LinkList L){
             printf("\t\t2.保存到文件后退出\n");
             printf("\t\t0.直接退出\n");
             scanf("%d", &number);
+            system("cls");
             switch (number) {
                 case 1: {
                     AdministratorMenu(L);
@@ -1292,13 +1326,13 @@ void AdministratorMenu(LinkList L){
                 default:
                     printf("\t\t输入错误，请重新输入：\n");
             }
-    }
+        }
             break;
         case 9:{
             FileWrite(L);
         }
             break;
-}
+    }
 }
 
 /*
@@ -1323,6 +1357,7 @@ void RegisterMenu(LinkList L) {
     scanf("%s", pass1);
     printf("\t\t请再次输入你的密码\n");
     scanf("%s", pass2);
+    system("cls");
     if (strcmp(pass1, pass2) == 0) {
         ElemType e;
         e.ID = ID;
@@ -1335,7 +1370,7 @@ void RegisterMenu(LinkList L) {
         printf("恭喜玩家");
         printf("%lld", ID);
         printf("注册成功\n");
-        sleep(200);
+        system("cls");
         showMenu(L);
     }
 }
@@ -1353,6 +1388,7 @@ void LoginMenu(LinkList L) {
     scanf("%lld", &ID);
     printf("\t\t请输入你的密码\n");
     scanf("%s", pass);
+    system("cls");
     ElemType e;
     LinkSearch(L, &e, ID);
     if (strcmp(pass, e.password) == 0) {
@@ -1364,7 +1400,6 @@ void LoginMenu(LinkList L) {
     } else {
         printf("\t\t登录失败");
         printf("\t\t请重新输入ID和密码");
-        sleep(300);
         LoginMenu(L);
     }
 }
@@ -1382,6 +1417,7 @@ void showMenu(LinkList L) {
     printf("\t\t0、退出\n");
     printf("******************END******************\n");
     scanf("%d", &number);
+    system("cls");
     switch (number) {
         case 1:
             LoginMenu(L);
